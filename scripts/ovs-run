@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+mkdir -p /var/log/openvswitch /var/lib/openvswitch /var/lib/openvswitch/pki /var/run/openvswitch /opt/ovs/etc/openvswitch
+
+[[ -f /opt/ovs/etc/openvswitch/conf.db ]] || /opt/ovs/bin/ovsdb-tool create /opt/ovs/etc/openvswitch/conf.db /opt/ovs/share/openvswitch/vswitch.ovsschema
+/opt/ovs/sbin/ovsdb-server --remote=punix:/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach
+
+/opt/ovs/bin/ovs-vsctl --no-wait init
+
+/opt/ovs/sbin/ovs-vswitchd --pidfile --log-file

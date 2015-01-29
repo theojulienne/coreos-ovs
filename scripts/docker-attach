@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Wait until docker actually brings its interface up, just in case it takes extra time
+while ! ip link show dev docker0 | grep -q UP; do
+	sleep 1
+done
+
+if ! ifconfig docker0 | grep -q 'inet addr:'; then
+	echo 'docker0 has no IP address, has this script already been run?'
+	exit 1
+fi
+
+# Grab the IPv4 address and mask of docker0, so we can reuse it
+DOCKER_IP=$(ifconfig docker0 | grep -Po '(?<=inet addr:)([0-9\.]+)')
+DOCKER_NM=$(ifconfig docker0 | grep -Po '(?<=Mask:)([0-9\.]+)')
+
+# Make sure the bridge is newly created
+/opt/ovs/bin/ovs-vsctl del-br br0 >/dev/null 2>&1 || true
+/opt/ovs/bin/ovs-vsctl add-br br0
+
+# Give the OVS br0 the same IP as docker0 (for now)
+ifconfig br0 up $DOCKER_IP netmask $DOCKER_NM
+
+# Nuke the IP on the interface, since the OVS bridge has issues unless it has the IP.
+# Since docker won't start without an IP at the moment, this is the simplest way.
+ifconfig docker0 0.0.0.0
+
+# Now bind docker0 as a port to the OVS bridge, making everything work again, but attached to OVS
+/opt/ovs/bin/ovs-vsctl add-port br0 docker0

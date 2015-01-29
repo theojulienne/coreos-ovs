@@ -1,0 +1,27 @@
+#cloud-config
+
+coreos:
+  units:
+    - name: docker.service
+      command: start
+      drop-ins:
+        - name: 50-custom-bridge.conf
+          content: |
+            [Service]
+            Environment='DOCKER_OPTS=--bip="10.0.11.0/8" --fixed-cidr="10.0.11.0/24"'
+    - name: openvswitch.service
+      command: start
+      content: |
+        [Unit]
+        Description=Open vSwitch Servers
+        After=docker.service
+        Requires=docker.service
+
+        [Service]
+        Restart=always
+        ExecStartPre=/sbin/modprobe openvswitch
+        ExecStartPre=-/usr/bin/docker run --name=openvswitch-cfg -v /opt/ovs/etc busybox true
+        ExecStartPre=-/usr/bin/docker rm -f openvswitch
+        ExecStartPre=/usr/bin/docker run -d --net=host --privileged --name=openvswitch --volumes-from=openvswitch-cfg theojulienne/coreos-ovs:latest
+        ExecStart=/usr/bin/docker attach openvswitch
+        ExecStartPost=/usr/bin/docker exec openvswitch /scripts/docker-attach

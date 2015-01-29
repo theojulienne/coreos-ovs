@@ -11,3 +11,6 @@ WORKDIR /tmp/openvswitch-2.3.1
 RUN ./configure --prefix=/opt/ovs --localstatedir=/var
 RUN make
 RUN make install
+
+ADD openvswitch-ipsec.init /opt/ovs/bin/openvswitch-ipsec.init
+RUN cp debian/ovs-monitor-ipsec /opt/ovs/bin/ovs-monitor-ipsec; chmod +x /opt/ovs/bin/ovs-monitor-ipsec

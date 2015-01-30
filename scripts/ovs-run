@@ -7,6 +7,8 @@ mkdir -p /var/log/openvswitch /var/lib/openvswitch /var/lib/openvswitch/pki /var
 [[ -f /opt/ovs/etc/openvswitch/conf.db ]] || /opt/ovs/bin/ovsdb-tool create /opt/ovs/etc/openvswitch/conf.db /opt/ovs/share/openvswitch/vswitch.ovsschema
 /opt/ovs/sbin/ovsdb-server --remote=punix:/var/run/openvswitch/db.sock --remote=db:Open_vSwitch,Open_vSwitch,manager_options --pidfile --detach
 
+/etc/init.d/racoon start
+
 /opt/ovs/bin/openvswitch-ipsec.init start
 
 /opt/ovs/bin/ovs-vsctl --no-wait init

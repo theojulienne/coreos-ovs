@@ -20,6 +20,7 @@ coreos:
         [Service]
         Restart=always
         ExecStartPre=/sbin/modprobe openvswitch
+        ExecStartPre=/sbin/modprobe af_key
         ExecStartPre=-/usr/bin/docker run --name=openvswitch-cfg -v /opt/ovs/etc busybox true
         ExecStartPre=-/usr/bin/docker rm -f openvswitch
         ExecStartPre=/usr/bin/docker run -d --net=host --privileged --name=openvswitch --volumes-from=openvswitch-cfg theojulienne/coreos-ovs:latest
